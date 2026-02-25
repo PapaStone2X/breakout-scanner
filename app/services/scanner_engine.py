@@ -8,7 +8,7 @@ import yfinance as yf
 from sqlalchemy.orm import Session
 
 from app.models import Scan, ScanResult
-from app.services.universe import get_sp500_tickers_and_meta
+from app.services.universe import get_sp500_tickers_and_meta, get_russell3000_tickers_and_meta
 from app.services.market_data import download_batch
 
 
@@ -137,6 +137,8 @@ def run_scan(scan_id: int, db: Session, params: dict) -> None:
 
         if custom_tickers:
             tickers = [t.upper() for t in custom_tickers]
+        elif universe == "russell3000":
+            tickers, meta = get_russell3000_tickers_and_meta()
         else:
             tickers, meta = get_sp500_tickers_and_meta()
 
