@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+yfinance
+pandas
+requests
+tqdm
+lxml
+html5lib
