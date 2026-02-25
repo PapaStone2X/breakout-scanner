@@ -1,0 +1,49 @@
+{
+  "scan_time": "2026-02-24T14:25:30.575904",
+  "params": {
+    "universe": "sp500",
+    "lookback_years": 10,
+    "stale_threshold_days": 252,
+    "recency_days": 5,
+    "tickers_scanned": 503,
+    "tickers_downloaded": 503
+  },
+  "results": [
+    {
+      "price": 945.64,
+      "ten_year_high": 962.92,
+      "ten_year_low": 218.4,
+      "volume": 665100,
+      "avg_volume_20d": 752325,
+      "signal": "near_high",
+      "level": 962.92,
+      "level_date": "2024-12-06",
+      "days_stale": 296,
+      "pct_from_level": 1.79,
+      "ticker": "EQIX",
+      "name": "Equinix",
+      "sector": "Real Estate"
+    },
+    {
+      "price": 123.82,
+      "ten_year_high": 126.28,
+      "ten_year_low": 34.04,
+      "volume": 9660400,
+      "avg_volume_20d": 13448305,
+      "signal": "near_high",
+      "level": 126.28,
+      "level_date": "2024-06-24",
+      "days_stale": 412,
+      "pct_from_level": 1.95,
+      "ticker": "MRK",
+      "name": "Merck & Co.",
+      "sector": "Health Care"
+    }
+  ],
+  "summary": {
+    "breakout_highs": 0,
+    "breakout_lows": 0,
+    "near_highs": 2,
+    "near_lows": 0
+  }
+}
