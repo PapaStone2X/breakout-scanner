@@ -39,13 +39,21 @@ async def create_scan(params: ScanCreate, db: Session = Depends(get_db)):
 
     asyncio.get_event_loop().run_in_executor(None, _run)
 
-    return scan
+    d = ScanSummary.model_validate(scan)
+    d.result_count = 0
+    return d
 
 
 @router.get("", response_model=list[ScanSummary])
 def list_scans(db: Session = Depends(get_db)):
-    """List all scans, newest first."""
-    return db.query(Scan).order_by(Scan.started_at.desc()).all()
+    """List all scans, newest first, with result counts."""
+    scans = db.query(Scan).order_by(Scan.started_at.desc()).all()
+    out = []
+    for s in scans:
+        d = ScanSummary.model_validate(s)
+        d.result_count = len(s.results)
+        out.append(d)
+    return out
 
 
 @router.get("/latest", response_model=ScanOut | None)

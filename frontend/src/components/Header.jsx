@@ -1,6 +1,6 @@
 import { colors, fonts } from '../theme'
 
-export default function Header({ params, scanTime, onRunScan }) {
+export default function Header({ params, scanTime, onRunScan, onShowHistory }) {
   const scanDate = scanTime ? new Date(scanTime).toLocaleString() : 'No scans yet'
   return (
     <div style={{
@@ -26,6 +26,13 @@ export default function Header({ params, scanTime, onRunScan }) {
         <div style={{ fontSize: 10, color: colors.textFaint, letterSpacing: '0.05em' }}>
           {params ? `${params.tickers_scanned} TICKERS` : ''} &bull; {scanDate}
         </div>
+        <button onClick={onShowHistory} style={{
+          padding: '6px 14px', borderRadius: 4, fontSize: 10,
+          background: 'transparent', border: `1px solid ${colors.borderLight}`, color: colors.textDim,
+          letterSpacing: '0.05em', cursor: 'pointer', fontFamily: fonts.mono, fontWeight: 600,
+        }}>
+          HISTORY
+        </button>
         <button onClick={onRunScan} style={{
           padding: '6px 14px', borderRadius: 4, fontSize: 10,
           background: colors.blueDark, border: `1px solid ${colors.blueBorder}`, color: colors.blue,

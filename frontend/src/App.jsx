@@ -11,6 +11,7 @@ import FilterControls from './components/FilterControls'
 import ScannerTable from './components/ScannerTable'
 import DetailPanel from './components/DetailPanel'
 import ScanConfigModal from './components/ScanConfigModal'
+import ScanHistory from './components/ScanHistory'
 import WatchlistPanel from './components/WatchlistPanel'
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
   const [search, setSearch] = useState('')
   const [selectedTicker, setSelectedTicker] = useState(null)
   const [showScanModal, setShowScanModal] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
   const [scanning, setScanning] = useState(null)
 
   // Watchlists
@@ -157,6 +159,7 @@ export default function App() {
         params={scan ? { tickers_scanned: scan.tickers_scanned } : null}
         scanTime={scan?.started_at}
         onRunScan={() => setShowScanModal(true)}
+        onShowHistory={() => setShowHistory(true)}
       />
 
       {scanning && scanning.status === 'running' && (
@@ -238,6 +241,13 @@ export default function App() {
         <ScanConfigModal
           onClose={() => setShowScanModal(false)}
           onStart={handleStartScan}
+        />
+      )}
+
+      {showHistory && (
+        <ScanHistory
+          onClose={() => setShowHistory(false)}
+          onLoadScan={(scan) => { setScan(scan); setSelectedTicker(null) }}
         />
       )}
     </div>

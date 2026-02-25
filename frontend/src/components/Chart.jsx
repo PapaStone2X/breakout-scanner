@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { createChart, ColorType } from 'lightweight-charts'
+import { createChart, ColorType, CandlestickSeries, HistogramSeries } from 'lightweight-charts'
 import { fetchChartData } from '../api'
 import { colors, fonts } from '../theme'
 
@@ -8,79 +8,102 @@ const PERIODS = ['3m', '6m', '1y', '2y', '5y', '10y']
 export default function Chart({ ticker, level, signal }) {
   const containerRef = useRef(null)
   const chartRef = useRef(null)
+  const priceLineRef = useRef(null)
   const [period, setPeriod] = useState('1y')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
+  // Create chart once on mount
   useEffect(() => {
     if (!containerRef.current) return
 
-    const chart = createChart(containerRef.current, {
-      width: containerRef.current.clientWidth,
-      height: 350,
-      layout: {
-        background: { type: ColorType.Solid, color: colors.bgCard },
-        textColor: colors.textDim,
-        fontFamily: fonts.mono,
-        fontSize: 10,
-      },
-      grid: {
-        vertLines: { color: '#1a1a2e' },
-        horzLines: { color: '#1a1a2e' },
-      },
-      crosshair: {
-        mode: 0,
-      },
-      rightPriceScale: {
-        borderColor: colors.border,
-      },
-      timeScale: {
-        borderColor: colors.border,
-        timeVisible: false,
-      },
-    })
+    try {
+      const chart = createChart(containerRef.current, {
+        width: containerRef.current.clientWidth,
+        height: 350,
+        layout: {
+          background: { type: ColorType.Solid, color: colors.bgCard },
+          textColor: colors.textDim,
+          fontFamily: fonts.mono,
+          fontSize: 10,
+        },
+        grid: {
+          vertLines: { color: '#1a1a2e' },
+          horzLines: { color: '#1a1a2e' },
+        },
+        crosshair: {
+          mode: 0,
+        },
+        rightPriceScale: {
+          borderColor: colors.border,
+        },
+        timeScale: {
+          borderColor: colors.border,
+          timeVisible: false,
+        },
+      })
 
-    const candleSeries = chart.addCandlestickSeries({
-      upColor: colors.green,
-      downColor: colors.red,
-      borderUpColor: colors.green,
-      borderDownColor: colors.red,
-      wickUpColor: colors.green,
-      wickDownColor: colors.red,
-    })
+      const candleSeries = chart.addSeries(CandlestickSeries, {
+        upColor: colors.green,
+        downColor: colors.red,
+        borderUpColor: colors.green,
+        borderDownColor: colors.red,
+        wickUpColor: colors.green,
+        wickDownColor: colors.red,
+      })
 
-    const volumeSeries = chart.addHistogramSeries({
-      priceFormat: { type: 'volume' },
-      priceScaleId: 'volume',
-    })
+      const volumeSeries = chart.addSeries(HistogramSeries, {
+        priceFormat: { type: 'volume' },
+        priceScaleId: 'volume',
+      })
 
-    chart.priceScale('volume').applyOptions({
-      scaleMargins: { top: 0.8, bottom: 0 },
-    })
+      chart.priceScale('volume').applyOptions({
+        scaleMargins: { top: 0.8, bottom: 0 },
+      })
 
-    chartRef.current = { chart, candleSeries, volumeSeries }
+      chartRef.current = { chart, candleSeries, volumeSeries }
 
-    const handleResize = () => {
-      if (containerRef.current) {
-        chart.applyOptions({ width: containerRef.current.clientWidth })
+      const handleResize = () => {
+        if (containerRef.current) {
+          chart.applyOptions({ width: containerRef.current.clientWidth })
+        }
       }
-    }
-    window.addEventListener('resize', handleResize)
+      window.addEventListener('resize', handleResize)
 
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      chart.remove()
-      chartRef.current = null
+      return () => {
+        window.removeEventListener('resize', handleResize)
+        chart.remove()
+        chartRef.current = null
+      }
+    } catch (err) {
+      console.error('Chart init error:', err)
+      setError('Failed to initialize chart')
     }
   }, [])
 
+  // Load data when ticker/period changes
   useEffect(() => {
     if (!chartRef.current) return
     const { candleSeries, volumeSeries, chart } = chartRef.current
 
+    // Remove old price line
+    if (priceLineRef.current) {
+      try {
+        candleSeries.removePriceLine(priceLineRef.current)
+      } catch (_) {}
+      priceLineRef.current = null
+    }
+
     setLoading(true)
+    setError(null)
+
     fetchChartData(ticker, period)
       .then(data => {
         if (!chartRef.current) return
+        if (!data || data.length === 0) {
+          setError('No chart data available')
+          return
+        }
 
         candleSeries.setData(data.map(d => ({
           time: d.time,
@@ -97,20 +120,35 @@ export default function Chart({ ticker, level, signal }) {
         })))
 
         // Draw horizontal price line at level
-        candleSeries.createPriceLine({
-          price: level,
-          color: signal?.includes('high') ? colors.yellow : colors.orange,
-          lineWidth: 1,
-          lineStyle: 2,
-          axisLabelVisible: true,
-          title: `Level: $${level}`,
-        })
+        if (level != null) {
+          try {
+            priceLineRef.current = candleSeries.createPriceLine({
+              price: level,
+              color: signal?.includes('high') ? colors.yellow : colors.orange,
+              lineWidth: 1,
+              lineStyle: 2,
+              axisLabelVisible: true,
+              title: `Level: $${level}`,
+            })
+          } catch (_) {}
+        }
 
         chart.timeScale().fitContent()
       })
-      .catch(() => {})
+      .catch(err => {
+        console.error('Chart data error:', err)
+        setError('Failed to load chart data')
+      })
       .finally(() => setLoading(false))
   }, [ticker, period, level, signal])
+
+  if (error && !loading) {
+    return (
+      <div style={{ padding: 20, textAlign: 'center', color: colors.textDim, fontSize: 11 }}>
+        {error}
+      </div>
+    )
+  }
 
   return (
     <div>

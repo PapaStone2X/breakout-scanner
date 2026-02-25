@@ -61,8 +61,14 @@ class ScanSummary(BaseModel):
     completed_at: datetime | None
     status: str
     universe: str
+    lookback_years: int
+    stale_days: int
+    recency_days: int
     tickers_scanned: int
+    tickers_downloaded: int
     progress: int
+    error_message: str | None
+    result_count: int = 0
 
     class Config:
         from_attributes = True
