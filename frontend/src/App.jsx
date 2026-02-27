@@ -83,6 +83,42 @@ export default function App() {
     else { setSortCol(col); setSortDir('desc') }
   }
 
+  const handleExport = () => {
+    const headers = [
+      'Ticker', 'Name', 'Sector', 'Signal', 'Price', '% Move',
+      '10Y High', '10Y Low', 'Level', 'Level Date', 'Days Stale',
+      'Breakout Date', 'Breakout Close', 'Volume', 'Avg Volume 20d', 'Vol Ratio',
+    ]
+    const rows = filtered.map(s => [
+      s.ticker,
+      s.name,
+      s.sector,
+      s.signal,
+      s.price,
+      s.pct_above ?? s.pct_below ?? s.pct_from_level ?? '',
+      s.ten_year_high,
+      s.ten_year_low,
+      s.level,
+      s.level_date,
+      s.days_stale,
+      s.breakout_date ?? '',
+      s.breakout_close ?? '',
+      s.volume,
+      s.avg_volume_20d,
+      s.avg_volume_20d ? (s.volume / s.avg_volume_20d).toFixed(2) : '',
+    ])
+    const csv = [headers, ...rows].map(r =>
+      r.map(v => typeof v === 'string' && v.includes(',') ? `"${v}"` : v).join(',')
+    ).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `breakout_scanner_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const handleAddToWatchlist = async (wlId, ticker) => {
     try {
       await addTickersToWatchlist(wlId, [ticker])
@@ -214,6 +250,7 @@ export default function App() {
         sector={sector} setSector={setSector}
         search={search} setSearch={setSearch}
         count={filtered.length}
+        onExport={handleExport}
       />
 
       <ScannerTable

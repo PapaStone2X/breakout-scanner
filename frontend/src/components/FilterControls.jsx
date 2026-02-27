@@ -14,7 +14,7 @@ const FILTERS = [
   { key: 'all', label: 'All Signals' },
 ]
 
-export default function FilterControls({ filter, setFilter, sector, setSector, search, setSearch, count }) {
+export default function FilterControls({ filter, setFilter, sector, setSector, search, setSearch, count, onExport }) {
   return (
     <div style={{
       padding: '12px 24px', display: 'flex', gap: 12, alignItems: 'center',
@@ -46,8 +46,19 @@ export default function FilterControls({ filter, setFilter, sector, setSector, s
           borderRadius: 4, color: colors.text, fontSize: 11, fontFamily: fonts.mono, width: 200, outline: 'none',
         }}
       />
-      <div style={{ marginLeft: 'auto', fontSize: 10, color: colors.textFaint }}>
-        {count} result{count !== 1 ? 's' : ''}
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{ fontSize: 10, color: colors.textFaint }}>
+          {count} result{count !== 1 ? 's' : ''}
+        </span>
+        {count > 0 && (
+          <button onClick={onExport} style={{
+            padding: '5px 12px', border: `1px solid ${colors.borderLight}`, borderRadius: 4,
+            background: 'transparent', color: colors.textDim, fontSize: 10,
+            fontFamily: fonts.mono, cursor: 'pointer', fontWeight: 500,
+          }}>
+            EXPORT CSV
+          </button>
+        )}
       </div>
     </div>
   )
